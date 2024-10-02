@@ -2,7 +2,7 @@
     "name": "computing-society-bot",
     "version": "1.0.0",
     "description": "",
-    "main": "index.js",
+    "main": "bot.js",
     "scripts": {
         "clean": "rimraf dist",
         "lint": "eslint . --ext .js,.ts",
