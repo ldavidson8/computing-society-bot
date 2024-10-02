@@ -1,0 +1,28 @@
+# Dependency directories
+node_modules/
+vendor/
+
+# Environment files
+.env
+
+# Build directories
+dist/
+build/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+
+# IDE-specific files
+.vscode/
+.idea/
+
+.env
+!.env.example
