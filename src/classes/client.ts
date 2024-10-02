@@ -1,4 +1,4 @@
-import { Client, Collection, GatewayIntentBits } from 'discord.js';
+import { Client, Collection, GatewayIntentBits, type Interaction } from 'discord.js';
 import { env } from '../env.js';
 import type { Command } from '../interfaces/command.js';
 import type { Event } from '../interfaces/event.js';
@@ -6,8 +6,13 @@ import { fileURLToPath, URL } from 'node:url';
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { logger } from '../utils/logger.js';
+import {
+    handleMultiplePronouns,
+    handlePronounSelection,
+    handleSinglePronoun,
+} from '../utils/pronounHandlers.js';
 
-                            export class ExtendedClient extends Client {
+export class ExtendedClient extends Client {
     commands: Collection<string, Command>;
 
     constructor() {
@@ -29,6 +34,7 @@ import { logger } from '../utils/logger.js';
     start() {
         this.loadCommands();
         this.loadEvents();
+        this.setupGlobalCollector();
         this.login(env.DISCORD_TOKEN);
     }
 
@@ -69,5 +75,23 @@ import { logger } from '../utils/logger.js';
                 logger.error(`Failed to load event ${file}:`, error);
             }
         }
+    }
+
+    private setupGlobalCollector() {
+        this.on('interactionCreate', async (interaction: Interaction) => {
+            if (!interaction.isButton() && !interaction.isStringSelectMenu()) return;
+
+            if (interaction.isButton()) {
+                if (interaction.customId === 'select_multiple') {
+                    await handleMultiplePronouns(interaction);
+                } else {
+                    await handleSinglePronoun(interaction);
+                }
+            } else if (interaction.isStringSelectMenu()) {
+                if (interaction.customId.startsWith('pronoun_select_')) {
+                    await handlePronounSelection(interaction);
+                }
+            }
+        });
     }
 }
