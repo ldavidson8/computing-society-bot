@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-import { type PathLike, readdirSync } from 'node:fs';
+import { type PathLike, readdirSync, statSync } from 'node:fs';
 import {
     REST,
     type RESTPostAPIApplicationCommandsJSONBody,
@@ -17,15 +17,27 @@ const commands:
     | RESTPostAPIApplicationCommandsJSONBody[]
     | RESTPostAPIApplicationGuildCommandsJSONBody[] = [];
 const commandFolderPath = fileURLToPath(new URL('commands', import.meta.url));
-async function loadCommands(commandFolderPath: PathLike) {
-    const commandFiles = readdirSync(commandFolderPath).filter(file => file.endsWith('.js'));
 
-    for (const file of commandFiles) {
-        const filePath = join(commandFolderPath.toString(), file);
-        const command: Command = (await import(filePath)).default;
-        commands.push(command.data);
+async function loadCommands(folderPath: PathLike) {
+    const entries = readdirSync(folderPath);
+
+    for (const entry of entries) {
+        const entryPath = join(folderPath.toString(), entry);
+        const entryStat = statSync(entryPath);
+
+        if (entryStat.isDirectory()) {
+            await loadCommands(entryPath);
+        } else if (entryStat.isFile() && (entry.endsWith('.ts') || entry.endsWith('.js'))) {
+            try {
+                const command: Command = (await import(entryPath)).default;
+                commands.push(command.data);
+            } catch (error) {
+                logger.error(`Failed to load command ${entry}:`, error);
+            }
+        }
     }
 }
+
 await loadCommands(commandFolderPath);
 const rest = new REST().setToken(env.DISCORD_TOKEN);
 

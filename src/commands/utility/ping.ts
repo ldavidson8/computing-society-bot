@@ -1,5 +1,5 @@
 import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
-import type { Command } from '../interfaces/command.js';
+import type { Command } from '../../interfaces/command.js';
 import { RateLimiter } from 'discord.js-rate-limiter';
 
 export const metadata = new SlashCommandBuilder()

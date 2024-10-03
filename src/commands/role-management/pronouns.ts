@@ -7,7 +7,7 @@ import {
     SlashCommandBuilder,
     Guild,
 } from 'discord.js';
-import type { Command } from '../interfaces/command.js';
+import type { Command } from '../../interfaces/command.js';
 
 const metadata = new SlashCommandBuilder()
     .setName('pronouns')

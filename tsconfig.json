@@ -20,5 +20,6 @@
         "lib": ["es2022"],
         "forceConsistentCasingInFileNames": true
     },
+    "include": ["src/**/*"],
     "exclude": ["dist", "node_modules", "test"]
 }
