@@ -5,6 +5,7 @@ import {
     CommandInteractionOptionResolver,
 } from 'discord.js';
 import type { Command } from '../../interfaces/command.js';
+import { logger } from '../../utils/logger.js';
 
 const metadata = new SlashCommandBuilder()
     .setName('question')
@@ -20,6 +21,9 @@ async function execute(interaction: CommandInteraction): Promise<void> {
     const targetChannelId = '1291087975085506689';
     const targetChannel = interaction.guild?.channels.cache.get(targetChannelId) as TextChannel;
 
+    const auditChannelId = '1291372760316248148';
+    const auditChannel = interaction.guild?.channels.cache.get(auditChannelId) as TextChannel;
+
     if (!targetChannel) {
         await interaction.reply({
             content: 'The target channel does not exist',
@@ -28,9 +32,16 @@ async function execute(interaction: CommandInteraction): Promise<void> {
         return;
     }
 
+    if (!auditChannel) {
+        logger.error('Audit channel does not exist');
+        return;
+    }
+
+    await auditChannel.send(`Question: ${question} from <@${interaction.user.id}>`);
+
     const questionMessage = await targetChannel.send(`*Anonymous Question:* \n${question}`);
     const thread = await questionMessage.startThread({
-        name: `Question: from ${interaction.user.username}`,
+        name: `Question: ${question}`,
         autoArchiveDuration: 1440, // 24 hours
     });
 

@@ -1,4 +1,10 @@
-import { Client, Collection, GatewayIntentBits, type Interaction } from 'discord.js';
+import {
+    ButtonComponent,
+    Client,
+    Collection,
+    GatewayIntentBits,
+    StringSelectMenuComponent,
+} from 'discord.js';
 import { env } from '../env.js';
 import type { Command } from '../interfaces/command.js';
 import type { Event } from '../interfaces/event.js';
@@ -6,16 +12,13 @@ import { readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { logger } from '../utils/logger.js';
-import {
-    handleMultiplePronouns,
-    handlePronounSelection,
-    handleSinglePronoun,
-} from '../utils/pronounHandlers.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 export class ExtendedClient extends Client {
     commands: Collection<string, Command>;
+    buttons: Collection<string, ButtonComponent>;
+    selectMenus: Collection<string, StringSelectMenuComponent>;
 
     constructor() {
         super({
@@ -31,12 +34,13 @@ export class ExtendedClient extends Client {
             },
         });
         this.commands = new Collection<string, Command>();
+        this.buttons = new Collection<string, ButtonComponent>();
+        this.selectMenus = new Collection<string, StringSelectMenuComponent>();
     }
 
     start() {
         this.loadCommands();
         this.loadEvents();
-        this.setupGlobalCollector();
         this.login(env.DISCORD_TOKEN);
     }
 
@@ -97,21 +101,36 @@ export class ExtendedClient extends Client {
         }
     }
 
-    private setupGlobalCollector() {
-        this.on('interactionCreate', async (interaction: Interaction) => {
-            if (!interaction.isButton() && !interaction.isStringSelectMenu()) return;
+    private async loadComponents() {
+        const componentFolderPath = join(__dirname, '..', 'components');
+        await this.loadComponentFiles(componentFolderPath);
+    }
 
-            if (interaction.isButton()) {
-                if (interaction.customId === 'select_multiple') {
-                    await handleMultiplePronouns(interaction);
-                } else {
-                    await handleSinglePronoun(interaction);
-                }
-            } else if (interaction.isStringSelectMenu()) {
-                if (interaction.customId.startsWith('pronoun_select_')) {
-                    await handlePronounSelection(interaction);
+    private async loadComponentFiles(folderPath: string) {
+        const entries = readdirSync(folderPath);
+
+        for (const entry of entries) {
+            const entryPath = join(folderPath, entry);
+            const entryStat = statSync(entryPath);
+
+            if (entryStat.isDirectory()) {
+                await this.loadComponentFiles(entryPath);
+            } else if (entryStat.isFile() && entry.endsWith('.js')) {
+                try {
+                    const componentModule = await import(entryPath);
+                    const component = componentModule.default;
+
+                    if (component instanceof ButtonComponent) {
+                        this.buttons.set(component.customId, component);
+                    } else if (component instanceof StringSelectMenuComponent) {
+                        this.selectMenus.set(component.customId, component);
+                    }
+
+                    logger.info(`Component ${component.customId} loaded`);
+                } catch (error) {
+                    logger.error(`Failed to load component ${entry}:`, error);
                 }
             }
-        });
+        }
     }
 }

@@ -6,31 +6,46 @@ import { logger } from '../utils/logger.js';
 const event: Event = {
     name: Events.InteractionCreate,
     execute: async (client: ExtendedClient, interaction: Interaction) => {
-        if (interaction.isCommand()) {
+        if (!interaction.isCommand()) return;
+
+        if (interaction.isChatInputCommand()) {
             const command = client.commands.get(interaction.commandName);
 
-            if (!command) {
-                logger.warn(`No command matching ${interaction.commandName} found`);
-                return;
-            }
+            if (!command) return;
 
             try {
-                if (interaction.isChatInputCommand()) {
-                    await command.execute(interaction);
-                }
+                await command.execute(interaction);
             } catch (error) {
-                logger.error(`Error executing command ${interaction.commandName}:`, error);
-
-                if (interaction.deferred || interaction.replied) {
-                    interaction.followUp({
-                        content: 'There was an error while executing this command!',
-                        ephemeral: true,
-                    });
+                if (error instanceof Error) {
+                    logger.error(error.stack);
                 } else {
-                    interaction.reply({
-                        content: 'There was an error while executing this command!',
-                        ephemeral: true,
-                    });
+                    logger.error(error);
+                }
+            }
+        } else if (interaction.isButton()) {
+            const button = client.buttons.get(interaction.customId);
+
+            if (!button) return;
+            try {
+                await button.execute(interaction);
+            } catch (error) {
+                if (error instanceof Error) {
+                    logger.error(error.stack);
+                } else {
+                    logger.error(error);
+                }
+            }
+        } else if (interaction.isStringSelectMenu()) {
+            const selectMenu = client.selectMenus.get(interaction.customId);
+
+            if (!selectMenu) return;
+            try {
+                await selectMenu.execute(interaction);
+            } catch (error) {
+                if (error instanceof Error) {
+                    logger.error(error.stack);
+                } else {
+                    logger.error(error);
                 }
             }
         }
