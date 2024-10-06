@@ -1,17 +1,28 @@
 import { Events } from 'discord.js';
-import type { Event } from '../interfaces/event.js';
+import { Event } from '../classes/event.js';
 import { logger } from '../utils/logger.js';
+import type { ExtendedClient } from '../classes/client.js';
 
-const event: Event = {
-    name: Events.ClientReady,
-    once: true,
-    execute: async client => {
-        if (!client.user) {
+export default class ReadyEvent extends Event {
+    constructor(client: ExtendedClient) {
+        super(client, {
+            name: Events.ClientReady,
+            description: 'Event that is triggered when the bot is ready',
+            once: true,
+        });
+    }
+
+    override async execute() {
+        if (!this.client.user) {
             logger.error('Client user is not available');
             return;
         }
-        logger.info(`\nReady! Logged in as ${client.user?.tag} (${client.user?.id})`);
-    },
-};
-
-export default event;
+        logger.info('⌛ Starting...');
+        logger.info(`Setting presence...`);
+        this.client.user?.setPresence({
+            status: 'online',
+        });
+        logger.info(`🟢 Logged in as ${this.client.user?.tag} (${this.client.user?.id})`);
+        logger.info(`🟢 Ready on ${this.client.guilds.cache.size} servers`);
+    }
+}

@@ -1,20 +1,19 @@
-import { Client, Collection, GatewayIntentBits, type Interaction } from 'discord.js';
+import { Client, Collection, GatewayIntentBits } from 'discord.js';
+
 import { env } from '../env.js';
-import type { Command } from '../interfaces/command.js';
-import type { Event } from '../interfaces/event.js';
-import { fileURLToPath, URL } from 'node:url';
-import { readdirSync } from 'node:fs';
-import { join } from 'node:path';
 import { logger } from '../utils/logger.js';
-import {
-    handleMultiplePronouns,
-    handlePronounSelection,
-    handleSinglePronoun,
-} from '../utils/pronounHandlers.js';
+
+import { Handler } from './handler.js';
+import type Command from './command.js';
+import type { Button } from './button.js';
+import type { SubCommand } from './subcommand.js';
 
 export class ExtendedClient extends Client {
-    commands: Collection<string, Command>;
-
+    handlers: Handler;
+    commands = new Collection<string, Command>();
+    subCommands = new Collection<string, SubCommand>();
+    buttons = new Collection<string, Button>();
+    cooldowns = new Collection<string, Collection<string, number>>();
     constructor() {
         super({
             intents: [
@@ -28,70 +27,17 @@ export class ExtendedClient extends Client {
                 timeout: 15_000,
             },
         });
-        this.commands = new Collection<string, Command>();
+        this.handlers = new Handler(this);
     }
 
-    start() {
-        this.loadCommands();
-        this.loadEvents();
-        this.setupGlobalCollector();
-        this.login(env.DISCORD_TOKEN);
+    async start() {
+        await this.loadHandlers();
+        await this.login(env.DISCORD_TOKEN).catch(error => logger.error(error));
     }
 
-    private async loadCommands() {
-        const commandFolderPath = fileURLToPath(new URL('../commands', import.meta.url));
-        const commandFiles = readdirSync(commandFolderPath).filter(file => file.endsWith('.js'));
-
-        for (const file of commandFiles) {
-            const filePath = join(commandFolderPath, file);
-            try {
-                const commandModule = await import(filePath);
-                const command = commandModule.default as Command;
-                this.commands.set(command.data.name, command);
-                logger.info(`Command ${command.data.name} loaded`);
-            } catch (error) {
-                logger.error(`Failed to load command ${file}:`, error);
-            }
-        }
-    }
-
-    private async loadEvents() {
-        const eventFolderPath = fileURLToPath(new URL('../events', import.meta.url));
-        const eventFiles = readdirSync(eventFolderPath).filter(file => file.endsWith('.js'));
-        for (const file of eventFiles) {
-            const filePath = join(eventFolderPath, file);
-            try {
-                const eventModule = await import(filePath);
-                const event = eventModule.default as Event;
-
-                if (event.once) {
-                    this.once(event.name, (...args) => event.execute(this, ...args));
-                } else {
-                    this.on(event.name, (...args) => event.execute(this, ...args));
-                }
-
-                logger.info(`Event ${event.name} loaded`);
-            } catch (error) {
-                logger.error(`Failed to load event ${file}:`, error);
-            }
-        }
-    }
-
-    private setupGlobalCollector() {
-        this.on('interactionCreate', async (interaction: Interaction) => {
-            if (!interaction.isButton() && !interaction.isStringSelectMenu()) return;
-
-            if (interaction.isButton()) {
-                if (interaction.customId === 'select_multiple') {
-                    await handleMultiplePronouns(interaction);
-                } else {
-                    await handleSinglePronoun(interaction);
-                }
-            } else if (interaction.isStringSelectMenu()) {
-                if (interaction.customId.startsWith('pronoun_select_')) {
-                    await handlePronounSelection(interaction);
-                }
-            }
-        });
+    async loadHandlers() {
+        await this.handlers.LoadEvents();
+        await this.handlers.LoadCommands();
+        await this.handlers.LoadButtons();
     }
 }

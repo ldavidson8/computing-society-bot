@@ -9,14 +9,13 @@
         "isolatedModules": true,
         "verbatimModuleSyntax": true,
 
-        "strict": true,
+        "strict": false,
         "noUncheckedIndexedAccess": true,
         "noImplicitOverride": true,
 
         "module": "NodeNext",
         "outDir": "dist",
         "sourceMap": true,
-
         "lib": ["es2022"],
         "forceConsistentCasingInFileNames": true
     },
