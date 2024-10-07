@@ -5,7 +5,6 @@ import type { ExtendedClient } from './client.js';
 import type { Event } from './event.js';
 import { logger } from '../utils/logger.js';
 import type Command from './command.js';
-import type { Button } from './button.js';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -90,32 +89,32 @@ export class Handler implements IHandler {
         );
     }
 
-    async LoadButtons(): Promise<void> {
-        const buttonsPath = join(this.basePath, 'buttons');
-        const files = FastGlob.sync('**/*.js', { cwd: buttonsPath });
+    // async LoadButtons(): Promise<void> {
+    //     const buttonsPath = join(this.basePath, 'buttons');
+    //     const files = FastGlob.sync('**/*.js', { cwd: buttonsPath });
 
-        logger.info(`Looking for buttons in: ${buttonsPath}`);
-        logger.info(`Found button files: ${files.join(', ')}`);
+    //     logger.info(`Looking for buttons in: ${buttonsPath}`);
+    //     logger.info(`Found button files: ${files.join(', ')}`);
 
-        for (const file of files) {
-            const path = join(buttonsPath, file);
-            try {
-                logger.info(`Loading button from: ${path}`);
-                const { default: ButtonClass } = await import(path);
-                const button: Button = new ButtonClass(this.client);
+    //     for (const file of files) {
+    //         const path = join(buttonsPath, file);
+    //         try {
+    //             logger.info(`Loading button from: ${path}`);
+    //             const { default: ButtonClass } = await import(path);
+    //             const button: Button = new ButtonClass(this.client);
 
-                if (!button.id) {
-                    logger.warn(`⚠️ Button id not found in ${path}`);
-                    continue;
-                }
+    //             if (!button.id) {
+    //                 logger.warn(`⚠️ Button id not found in ${path}`);
+    //                 continue;
+    //             }
 
-                this.client.buttons.set(button.id, button);
-                logger.info(`✅ Loaded button: ${button.id}`);
-            } catch (error) {
-                logger.error(`Failed to load button ${path}:`, error);
-            }
-        }
+    //             this.client.buttons.set(button.id, button);
+    //             logger.info(`✅ Loaded button: ${button.id}`);
+    //         } catch (error) {
+    //             logger.error(`Failed to load button ${path}:`, error);
+    //         }
+    //     }
 
-        logger.info(`Loaded ${this.client.buttons.size} buttons`);
-    }
+    //     logger.info(`Loaded ${this.client.buttons.size} buttons`);
+    // }
 }

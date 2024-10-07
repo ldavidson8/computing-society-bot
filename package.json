@@ -10,7 +10,7 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "prepare": "husky",
         "build": "tsc",
-        "start": "pnpm build && node dist/src/bot.js",
+        "start": "node dist/bot.js",
         "dev": "tsx src/bot.ts",
         "commands:deploy": "pnpm build && node dist/deploy-command.js"
     },

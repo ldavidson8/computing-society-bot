@@ -5,14 +5,12 @@ import { logger } from '../utils/logger.js';
 
 import { Handler } from './handler.js';
 import type Command from './command.js';
-import type { Button } from './button.js';
 import type { SubCommand } from './subcommand.js';
 
 export class ExtendedClient extends Client {
     handlers: Handler;
     commands = new Collection<string, Command>();
     subCommands = new Collection<string, SubCommand>();
-    buttons = new Collection<string, Button>();
     cooldowns = new Collection<string, Collection<string, number>>();
     constructor() {
         super({
@@ -38,6 +36,5 @@ export class ExtendedClient extends Client {
     async loadHandlers() {
         await this.handlers.LoadEvents();
         await this.handlers.LoadCommands();
-        await this.handlers.LoadButtons();
     }
 }

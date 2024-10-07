@@ -1,4 +1,4 @@
-import { Events } from 'discord.js';
+import { ActivityType, Events } from 'discord.js';
 import { Event } from '../classes/event.js';
 import { logger } from '../utils/logger.js';
 import type { ExtendedClient } from '../classes/client.js';
@@ -20,6 +20,12 @@ export default class ReadyEvent extends Event {
         logger.info('⌛ Starting...');
         logger.info(`Setting presence...`);
         this.client.user?.setPresence({
+            activities: [
+                {
+                    name: 'compiling code and debugging errors',
+                    type: ActivityType.Listening,
+                },
+            ],
             status: 'online',
         });
         logger.info(`🟢 Logged in as ${this.client.user?.tag} (${this.client.user?.id})`);

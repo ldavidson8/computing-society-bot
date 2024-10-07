@@ -41,7 +41,7 @@ export default class CommandHandlerEvent extends Event {
             now < (timestamps.get(interaction.user.id) ?? 0) + cooldownAmount
         ) {
             await interaction.reply({
-                content: `Please wait ${((timestamps.get(interaction.user.id) ?? 0) + cooldownAmount - now) / 1000} more second(s) before reusing the \`${command.name}\` command.`,
+                content: `Please wait ${Math.round(((timestamps.get(interaction.user.id) ?? 0) + cooldownAmount - now) / 1000)} more second(s) before reusing the \`${command.name}\` command.`,
                 ephemeral: true,
             });
             return;

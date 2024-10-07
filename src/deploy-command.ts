@@ -49,7 +49,10 @@ async function loadCommands(): Promise<Collection<string, Command>> {
                 );
             }
         } catch (error) {
-            logger.error(`Error loading command from file ${file}:`, error);
+            logger.error(`Error loading command from file ${file}`);
+            if (error instanceof Error) {
+                logger.error(error.stack);
+            }
         }
     }
 

@@ -20,11 +20,13 @@ export default class Ping extends Command {
         const sent = await interaction.reply({
             content: 'Pinging...',
             fetchReply: true,
-            ephemeral: true,
         });
 
+        const roundtripLatency = sent.createdTimestamp - interaction.createdTimestamp;
+        const apiLatency = Math.round(this.client.ws.ping);
+
         interaction.editReply({
-            content: `Roundtrip latency: ${sent.createdTimestamp - interaction.createdTimestamp}ms`,
+            content: `Roundtrip latency: ${roundtripLatency}ms\nAPI latency: ${apiLatency}ms`,
         });
     }
 }
