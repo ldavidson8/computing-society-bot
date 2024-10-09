@@ -22,6 +22,7 @@ const COURSES = [
     'Electronics Engineering',
     'Robotics Engineering',
     'Other',
+    'PhD',
 ] as const;
 
 export default class CourseCommand extends Command {
