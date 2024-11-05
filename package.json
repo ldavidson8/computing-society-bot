@@ -7,12 +7,11 @@
         "clean": "rimraf dist",
         "lint": "eslint . --ext .js,.ts",
         "format": "prettier --write .",
-        "test": "echo \"Error: no test specified\" && exit 1",
         "prepare": "husky",
         "build": "tsc",
-        "start": "node dist/bot.js",
-        "dev": "tsx src/bot.ts",
-        "commands:deploy": "pnpm build && node dist/deploy-command.js"
+        "start": "bun run dist/bot.js",
+        "dev": "bun run src/bot.ts",
+        "commands:deploy": "bun run build && bun run dist/deploy-command.js"
     },
     "keywords": [],
     "author": "",
